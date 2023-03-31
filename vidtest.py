@@ -1,12 +1,15 @@
 import cv2
 import pickle
 import numpy as np
-cap = cv2.VideoCapture('carPark.mp4')
+from pathlib import Path
+DATA_DIR = Path(Path().absolute(),'data')
+
+cap = cv2.VideoCapture(str(Path(DATA_DIR,'parking_vid.mp4')))
 
 with open('CarParkPos',"rb") as f:
     posList = pickle.load(f)
 
-width, height = (107,48)
+width, height = (60,30)
 
 def checkParkingSpace(imgProcessed):
     slots_avail = len(posList)
@@ -18,7 +21,7 @@ def checkParkingSpace(imgProcessed):
         #cv2.imshow(str(x*y),imgCrop)
         count = cv2.countNonZero(imgCrop)
 
-        if count < 900:
+        if count < 200:
             color = (0,255,0) # green
             text_color = (0,0,0)
         else:
@@ -57,6 +60,10 @@ cv2.setTrackbarMin('imgThreshold_constant','image',-25)
 # cv2.createTrackbar('kernel', 'image', 100, 100, lambda x: None)
 # cv2.createTrackbar('imgDilate', 'image', 100, 100, lambda x: None)
 ################################################
+
+# WRITE
+fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+out = cv2.VideoWriter('output.avi', fourcc, 20.0, (1920,1080))
 
 while True:
     # first one gives current position, second gives total number of frames present in video
@@ -98,7 +105,11 @@ while True:
 
     checkParkingSpace(imgDilate)
 
+    out.write(img)
     cv2.imshow("image",img)
-    #cv2.imshow("image",imgDilate)
+
     #cv2.imshow("ImageBlur",imgDilate)
-    cv2.waitKey(1)
+    c = cv2.waitKey(1)
+
+    if c & 0xFF == ord('q'):
+        break
