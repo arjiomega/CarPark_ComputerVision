@@ -11,26 +11,29 @@ The availability of a slot is detected by counting the number of nonzeros in eac
 ![slotpixels](https://i.imgur.com/2gjmPk1.png)
 we can see here that the white pixels indicating that there is something in the slot. The number of nonzero pixels is counted for each slot and compare it to a threshold to decide if it is available or not.
 
-## Future updates
-We can see in the gif above that there are false detections and it can be improved by applying an image classification machine learning model to detect if there is a car or not in the slot. This may improve the performance of the parking lot availability counter system but it may increase the computational cost which must be also taken into consideration.
-
 ## SETUP
-setup environment using miniconda
-```bash
-conda create --no-default-packages -n <env_name>
-conda activate <env_name>
-conda install python=3.9
+setup environment using venv
+```shell
+python3.10 -m venv .env
 ```
+
+load project environment (windows)
+```shell
+.\.env\Scripts\activate
+```
+
 install required libraries
-```bash
-pip install -r requirements.txt
+```shell
+pip install -e .
 ```
+
 prepare data
-```bash
+```shell
 python load_data.py
 ```
+
 run
-```bash
-python main.py
+```shell
+cv_carpark
 ```
 >press 'q' key to stop
