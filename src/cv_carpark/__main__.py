@@ -9,18 +9,54 @@ from cv_carpark import config
 # TODO: Add available lots
 class CarParkAvailability(videosource.VideoSource):
     def __init__(self, videopath: str | int = 0) -> None:
+        """
+        Initialize the CarParkAvailability object.
+
+        Args:
+        - videopath: The path to the video source (default is the webcam).
+        """
         super().__init__(videopath=videopath)
         self.window_name = "Car Park Availability Counter"
         self.parkinglot_dict = utils.load_parkinglot_data()
         self._set_window_properties()
 
     @videosource.VideoSource.startvid
-    def run(self, frame):
+    def run(self, frame:np.ndarray):
+        """
+        Process each frame of the video to determine the availability of parking lots.
+
+        Args:
+        - frame: The input frame to be processed.
+
+        Returns:
+        - np.ndarray: The processed frame with parking lot availability highlighted.
+        """
         frame = self._preprocess_lot(frame=frame, parkinglot_dict=self.parkinglot_dict)
         return frame
 
     @utils.lot_iter_decorator
-    def _preprocess_lot(self, frame, lot_idx, lot_loc, lot_dim, *args, **kwargs) -> np.ndarray:
+    def _preprocess_lot(
+        self, 
+        frame: np.ndarray,
+        lot_idx: int, 
+        lot_loc:tuple[int,int], 
+        lot_dim:tuple[int,int], 
+        *args, 
+        **kwargs
+    ) -> np.ndarray:
+        """
+        Preprocess a specific parking lot within the frame.
+
+        Args:
+        - frame: The input frame.
+        - lot_idx: The index of the parking lot.
+        - lot_loc: The location of the parking lot.
+        - lot_dim: The dimensions of the parking lot.
+
+        Returns:
+        - np.ndarray: The frame with the processed parking lot.
+        """
+        
         lot_loc_x, lot_loc_y = lot_loc
         lot_width, lot_height = lot_dim
 
@@ -59,6 +95,9 @@ class CarParkAvailability(videosource.VideoSource):
         return frame
 
     def _set_window_properties(self):
+        """
+        Set the properties of the display window for the processed video.
+        """
         cv2.namedWindow(self.window_name, cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty(
             self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL
