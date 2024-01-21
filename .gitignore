@@ -1,2 +1,5 @@
 data/
 *.avi
+__pycache__/
+.env
+*.egg-info
