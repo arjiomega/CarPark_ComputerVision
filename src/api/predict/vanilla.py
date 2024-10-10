@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 
-
-
 def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int|np.ndarray]:
     """
     Process an image frame to count the number of non-zero pixels in a parking lot area.

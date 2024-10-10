@@ -17,20 +17,12 @@ setup environment using venv
 python3.10 -m venv .env
 ```
 
-load project environment (windows)
-```shell
-.\.env\Scripts\activate
-```
-
 install required libraries
 ```shell
 pip install -e .
 ```
 
-prepare data
-```shell
-python load_data.py
-```
+[Parking Lot Video](https://www.youtube.com/watch?v=yojapmOkIfg)
 
 run
 ```shell

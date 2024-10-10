@@ -114,7 +114,7 @@ class MaskGenerator(Keys):
 
 
 def main():
-    parkinglot_imgpath = str(Path(config.DATA_DIR, "parking_img.png"))
+    parkinglot_imgpath = str(Path(config.DATA_DIR, "sample_parking_lot_img.jpg"))
 
     mask_generator = MaskGenerator(parkinglot_imgpath)
     mask_generator.run()

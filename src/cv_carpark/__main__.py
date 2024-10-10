@@ -105,7 +105,7 @@ class CarParkAvailability(videosource.VideoSource):
 
 
 def main():
-    videopath = str(Path(config.DATA_DIR, "parking_vid.mp4"))
+    videopath = str(Path(config.DATA_DIR, "parking_lot.mp4"))
 
     carpark = CarParkAvailability(videopath)
     carpark.run()
