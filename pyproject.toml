@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cv_carpark"
+name = "ParkingSpotCounter"
 version = "1.0.0"
 authors = [
     {name = "Richard Joseph Omega", email = "richardjoseph.omega@gmail.com"}

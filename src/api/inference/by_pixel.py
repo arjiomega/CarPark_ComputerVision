@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
+from utils.img_preprocess import frames_generator
 
-def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int|np.ndarray]:
+
+def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int | np.ndarray]:
     """
     Process an image frame to count the number of non-zero pixels in a parking lot area.
 
@@ -15,7 +17,7 @@ def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int|np.ndarray
 
     Returns:
         dict: A dictionary with the non-zero pixel count and optionally the processed image frame.
-    
+
     Raises:
         cv2.error: If there is an issue during image processing (e.g., incorrect format).
     """
@@ -51,6 +53,15 @@ def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int|np.ndarray
 
     return result
 
+
+def predict_by_pixel_count(image_frame, coords_list) -> list[bool]:
+    PIXEL_COUNT_FOR_OCCUPIED = 300
+    return [
+        count_lot_pixel(frame)["non_zero_pixel_count"] > PIXEL_COUNT_FOR_OCCUPIED
+        for frame in frames_generator(image_frame, coords_list)
+    ]
+
+
 def test_count_lot_pixel(image_path):
     """
     Test the count_lot_pixel function with a given image path.
@@ -64,8 +75,6 @@ def test_count_lot_pixel(image_path):
     # Load the image
     original_frame = cv2.imread(image_path)
 
-    
-
     # Check if the image is loaded properly
     if original_frame is None:
         print("Error: Could not load the image.")
@@ -74,11 +83,14 @@ def test_count_lot_pixel(image_path):
     print(original_frame)
 
     # Process the image and count non-zero pixels
-    result_dict = count_lot_pixel(original_frame, _debug = True)
+    result_dict = count_lot_pixel(original_frame, _debug=True)
 
-    cv2.imshow("test",original_frame)
+    cv2.imshow("test", original_frame)
 
-    count, processed_frame = result_dict['non_zero_pixel_count'], result_dict['processed_frame']
+    count, processed_frame = (
+        result_dict["non_zero_pixel_count"],
+        result_dict["processed_frame"],
+    )
 
     # Display the results
     print(f"Non-zero pixel count: {count}")
@@ -98,10 +110,9 @@ def test_count_lot_pixel(image_path):
     cv2.destroyAllWindows()
 
 
-
 if __name__ == "__main__":
     from pathlib import Path
 
     from cv_carpark import config
-    
-    test_count_lot_pixel(str(Path(config.DATA_DIR,"sample_parking_lot_img.jpg")))
+
+    test_count_lot_pixel(str(Path(config.DATA_DIR, "sample_parking_lot_img.jpg")))

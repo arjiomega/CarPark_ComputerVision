@@ -1,11 +1,11 @@
-from typing import Callable
+import requests
 
-from PIL import Image
 import numpy as np
+from PIL import Image
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-from utils.img_preprocess import draw_over_img, frames_generator
+from utils.img_preprocess import draw_over_img
 
 
 class StreamlitApp:
@@ -17,20 +17,20 @@ class StreamlitApp:
     def run(self):
         self.sidebar()
 
-        if self.target_image is not None:
+        if self.target_image:
             self.interactive_canvas()
 
-            if self.canvas_result.json_data is not None:
+            if self.canvas_result.json_data["objects"]:
                 self.reports()
                 self.predict_view()
 
     def sidebar(self):
+        # TODO: implement polygon
         st.sidebar.title("Settings")
         self.drawing_mode = st.sidebar.selectbox(
-            label = "Drawing tool:",
-            options = ("rectangle", "polygon")
+            label="Drawing tool:", options=("rectangle")  # , "polygon")
         )
-        
+
         uploaded_img = st.sidebar.file_uploader("Target image:", type=["png", "jpg"])
 
         if uploaded_img is not None:
@@ -51,84 +51,68 @@ class StreamlitApp:
             update_streamlit=self.realtime_update,
             width=width,
             height=height,
-            drawing_mode="rect" if self.drawing_mode == "rectangle" else self.drawing_mode,
+            drawing_mode=(
+                "rect" if self.drawing_mode == "rectangle" else self.drawing_mode
+            ),
             point_display_radius=0,
             display_toolbar=True,
-            key="interactive_canvas"
+            key="interactive_canvas",
         )
-    
+
     def reports(self, debug: bool = False):
         import pandas as pd
+
         self.label_df = pd.json_normalize(self.canvas_result.json_data["objects"])
 
-        if set(['left','top','width','height']).issubset(self.label_df.columns):
+        if set(["left", "top", "width", "height"]).issubset(self.label_df.columns):
             self.label_df = self.label_df.astype(
-                {
-                    'left': float,
-                    'top': float,
-                    'width': float,
-                    'height': float
-                }
+                {"left": float, "top": float, "width": float, "height": float}
             )
 
         if debug:
             st.write(self.label_df)
 
+    def _predict_by_pixel_count(
+        self, image, coords_list
+    ) -> dict[str, dict[str, list | bool]]:
 
-    def _predict_by_pixel_count(self, image, coords_list) -> list[bool]:
-        import requests
-        inference_type = "vanilla"
-        model_name = "empty"
-        url = f"http://localhost:8000/api/inference/{inference_type}/{model_name}"
-
-        st.write(np.array(image).dtype)
+        inference_type = "by_pixel"
+        url = f"http://localhost:8000/api/inference/{inference_type}"
 
         response = requests.post(
-            url, 
-            json = {"image_input": np.array(image).tolist(),
-                    "coords_list": coords_list
-            }
+            url,
+            json={"image_input": np.array(image).tolist(), "coords_list": coords_list},
         )
         response_data = response.json()
 
         return response_data
-        
-    def _process_frames(
-            self, 
-            preprocess_fn: Callable[[Image.Image, list[float,float,float,float]], list[bool]], 
-            image: Image.Image, 
-            coords_list: list[float,float,float,float]
-        ) -> list[bool]:
-        return preprocess_fn(image, coords_list)
 
     def inference(self, image, coords_list):
         return self._predict_by_pixel_count(image, coords_list)
 
     def predict_view(self):
-  
+
         coords_list = [
             [
-                coords_info['left'], # x1
-                coords_info['top'], # y1
-                coords_info['left']+coords_info['width'], # x2
-                coords_info['top']+coords_info['height'] # y2
+                coords_info["left"],  # x1
+                coords_info["top"],  # y1
+                coords_info["left"] + coords_info["width"],  # x2
+                coords_info["top"] + coords_info["height"],  # y2
             ]
             for _, coords_info in self.label_df.iterrows()
-        ]  
-    
+        ]
+
         coords_label_dict = self.inference(self.target_image, coords_list)
 
-        import json
-        print(json.dumps(coords_label_dict, indent=4))
-
         colors_list = [
-            "red" if info['label'] == True else "green"
-            for _, info in coords_label_dict.items()
+            "red" if info["label"] == True else "green"
+            for info in coords_label_dict.values()
         ]
 
         processed_img = draw_over_img(self.target_image, coords_list, colors_list)
 
         st.image(processed_img)
+
 
 if __name__ == "__main__":
     app = StreamlitApp()
