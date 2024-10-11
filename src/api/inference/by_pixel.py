@@ -110,11 +110,3 @@ def test_count_lot_pixel(image_path):
     # Wait for a key press and close the windows
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-
-    from cv_carpark import config
-
-    test_count_lot_pixel(str(Path(config.DATA_DIR, "sample_parking_lot_img.jpg")))
