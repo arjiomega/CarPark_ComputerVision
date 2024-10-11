@@ -61,7 +61,9 @@ def predict_by_pixel_count(image_frame, coords_list) -> list[bool]:
         for frame in frames_generator(image_frame, coords_list)
     ]
 
-
+#################################
+#               TEST
+#################################
 def test_count_lot_pixel(image_path):
     """
     Test the count_lot_pixel function with a given image path.
