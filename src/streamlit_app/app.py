@@ -14,6 +14,8 @@ class StreamlitApp:
         self.realtime_update = True
         self.target_image: Image.Image = None
 
+        st.title("Parking Lot Availability Counter")
+
     def run(self):
         self.sidebar()
 
