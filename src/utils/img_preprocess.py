@@ -1,3 +1,4 @@
+from fractions import Fraction
 from typing import Generator
 
 from PIL import Image, ImageDraw
@@ -5,6 +6,17 @@ from PIL import Image, ImageDraw
 coords_format = tuple[float, float, float, float]
 colors_format = tuple[int, int, int] | str
 colors_dict: dict[str:tuple] = {"red": (255, 0, 0), "green": (0, 255, 0)}
+
+def get_centroid(coords: coords_format) -> tuple[int, int]:
+    x1, y1, x2, y2 = coords
+    centroid_x, centroid_y = Fraction(x1+x2, 2), Fraction(y1+y2, 2)
+    return (int(centroid_x),int(centroid_y))
+
+def is_inside_boundary(boundary: coords_format, center_point: tuple[float, float]) -> bool:
+    x1, y1, x2, y2 = boundary
+    center_x, center_y = center_point
+
+    return (x2 >= center_x >= x1) and (y2 >= center_y >= y1)
 
 
 def frames_generator(

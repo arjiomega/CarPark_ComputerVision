@@ -89,6 +89,9 @@ class StreamlitApp:
 
         return response_data
 
+    def _predict_ml(self):
+        url = f"http://localhost:8000/api/inference/{inference_type}"
+
     def inference(self, image, coords_list):
         return self._predict_by_pixel_count(image, coords_list)
 

@@ -35,13 +35,18 @@ def inference(input_data: InferenceRequest):
 
     return output
 
+from api.inference.ml import Yolo
+
+yolo = Yolo()
+yolo_model = yolo.load()
 
 @app.post("/api/inference/ml/{model_name}")
 def inference(model_name: str, input_data: InferenceRequest):
 
     image_frame = Image.fromarray(np.array(input_data.image_input, dtype=np.uint8))
 
-    labels = predict_by_pixel_count(image_frame, input_data.coords_list)
+    if model_name == "yolo":
+        labels = yolo_model.inference(image_frame)
 
     output = {
         str(idx): {
