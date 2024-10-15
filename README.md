@@ -29,3 +29,10 @@ run
 cv_carpark
 ```
 >press 'q' key to stop
+
+
+fastapi run src/api/api.py
+streamlit run src/streamlit_app/app.py
+
+data used to train
+https://www.kaggle.com/datasets/braunge/aerial-view-car-detection-for-yolov5/data
