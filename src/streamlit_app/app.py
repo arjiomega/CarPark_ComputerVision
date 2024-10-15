@@ -1,19 +1,25 @@
-import requests
-
-import numpy as np
 from PIL import Image
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-from utils.img_preprocess import draw_over_img
+from streamlit_app.inference import Inference
+from shared_utils.img_preprocess import DrawOverImg
+from streamlit_app.utils import ApiResponseHandler, get_img_dims
 
+inference_format = dict[str, dict[str, list | bool]]
 
 class StreamlitApp:
-    def __init__(self) -> None:
+    def __init__(
+            self, 
+            inference_url = "http://localhost:8000/api/inference",
+            api_response_handler = ApiResponseHandler
+        ) -> None:
         self.stroke_width = 1
         self.realtime_update = True
         self.target_image: Image.Image = None
-
+        self.inference_url = inference_url
+        self.inference = Inference(inference_url, api_response_handler).inference
+        self.clicked_inference = False
         st.title("Parking Lot Availability Counter")
 
     def run(self):
@@ -38,13 +44,9 @@ class StreamlitApp:
         if uploaded_img is not None:
             self.target_image = Image.open(uploaded_img)
 
-    def _get_img_dims(self, img: Image.Image):
-        width, height = img.size
-        return width, height
-
     def interactive_canvas(self):
         FILL_COLOR = "rgba(255, 165, 0, 0.3)"
-        width, height = self._get_img_dims(self.target_image)
+        width, height = get_img_dims(self.target_image)
 
         self.canvas_result = st_canvas(
             fill_color=FILL_COLOR,
@@ -61,6 +63,8 @@ class StreamlitApp:
             key="interactive_canvas",
         )
 
+        self.clicked_inference = st.button("run inference")
+
     def reports(self, debug: bool = False):
         import pandas as pd
 
@@ -74,27 +78,6 @@ class StreamlitApp:
         if debug:
             st.write(self.label_df)
 
-    def _predict_by_pixel_count(
-        self, image, coords_list
-    ) -> dict[str, dict[str, list | bool]]:
-
-        inference_type = "by_pixel"
-        url = f"http://localhost:8000/api/inference/{inference_type}"
-
-        response = requests.post(
-            url,
-            json={"image_input": np.array(image).tolist(), "coords_list": coords_list},
-        )
-        response_data = response.json()
-
-        return response_data
-
-    def _predict_ml(self):
-        url = f"http://localhost:8000/api/inference/{inference_type}"
-
-    def inference(self, image, coords_list):
-        return self._predict_by_pixel_count(image, coords_list)
-
     def predict_view(self):
 
         coords_list = [
@@ -107,14 +90,30 @@ class StreamlitApp:
             for _, coords_info in self.label_df.iterrows()
         ]
 
-        coords_label_dict = self.inference(self.target_image, coords_list)
+        result = self.inference(self.target_image, coords_list, inference_type='ml')
 
-        colors_list = [
-            "red" if info["label"] == True else "green"
-            for info in coords_label_dict.values()
+        parking_lot_info = result['parking_lot_info']
+        cars_info = result['cars_info']
+
+        car_centroids_list = [
+            tuple(car['center_point'])
+            for car in cars_info.values()
         ]
 
-        processed_img = draw_over_img(self.target_image, coords_list, colors_list)
+        colors_list = [
+            "red" if info["is_occupied"] == True else "green"
+            for info in parking_lot_info.values()
+        ]
+
+        text_list = [
+            str(space_idx)
+            for space_idx in parking_lot_info.keys()
+        ]
+
+        draw = DrawOverImg(self.target_image)
+        draw.draw_spaces(coords_list, colors_list, text_list)
+        draw.draw_car_center_points(car_centroids_list)
+        processed_img = draw.get_processed_image()
 
         st.image(processed_img)
 
