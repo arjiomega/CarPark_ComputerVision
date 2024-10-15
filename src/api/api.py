@@ -3,15 +3,14 @@ from PIL import Image
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from api.inference.ml import Yolo
+from parking_lot.parking_lot import Cars, ParkingLot
 from api.inference.by_pixel import predict_by_pixel_count
 
+yolo = Yolo(_debug = True)
+yolo.load()
+
 app = FastAPI()
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
 
 class InferenceRequest(BaseModel):
     image_input: list[list[list[int]]]
@@ -20,40 +19,35 @@ class InferenceRequest(BaseModel):
 
 @app.post("/api/inference/by_pixel")
 def inference(input_data: InferenceRequest):
-
     image_frame = Image.fromarray(np.array(input_data.image_input, dtype=np.uint8))
-
     labels = predict_by_pixel_count(image_frame, input_data.coords_list)
 
-    output = {
+    return {
         str(idx): {
             "coords": coords,
             "label": label,
         }
         for idx, (coords, label) in enumerate(zip(input_data.coords_list, labels))
     }
-
-    return output
-
-from api.inference.ml import Yolo
-
-yolo = Yolo()
-yolo_model = yolo.load()
 
 @app.post("/api/inference/ml/{model_name}")
-def inference(model_name: str, input_data: InferenceRequest):
-
+def inference_ml(model_name: str, input_data: InferenceRequest):
     image_frame = Image.fromarray(np.array(input_data.image_input, dtype=np.uint8))
+    coords_list = input_data.coords_list
+
+    parking_lot = ParkingLot.from_list(coords_list)
 
     if model_name == "yolo":
-        labels = yolo_model.inference(image_frame)
+        result = yolo.inference(image_frame)
 
-    output = {
-        str(idx): {
-            "coords": coords,
-            "label": label,
-        }
-        for idx, (coords, label) in enumerate(zip(input_data.coords_list, labels))
+    cars = Cars.from_list(result.boxes.data.tolist())
+        
+    for car in cars.cars_iterator():
+        parking_lot.park_car(car)
+
+    return_dict = {
+        "parking_lot_info": parking_lot.to_dict(),
+        "cars_info": cars.to_dict()
     }
 
-    return output
+    return return_dict

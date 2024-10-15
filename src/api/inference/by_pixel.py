@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from utils.img_preprocess import frames_generator
+from shared_utils.img_preprocess import frames_generator
 
 
 def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int | np.ndarray]:
