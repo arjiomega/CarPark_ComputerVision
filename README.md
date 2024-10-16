@@ -2,6 +2,10 @@
 
 ![output](https://user-images.githubusercontent.com/103622027/229244210-d41a1e83-2885-4424-ab13-2be75779c8f4.gif)
 
+[![sample](https://raw.githubusercontent.com/arjiomega/CarPark_ComputerVision/refs/heads/streamlit-fastapi/data/sample_parking_lot_img.jpg)](https://raw.githubusercontent.com/arjiomega/CarPark_ComputerVision/refs/heads/streamlit-fastapi/data/parking_lot.mp4)
+
+<video src="https://raw.githubusercontent.com/arjiomega/CarPark_ComputerVision/refs/heads/streamlit-fastapi/data/parking_lot.mp4" width="800"/>
+
 This is a computer vision project that detects location of available parking slots and total available slots available as shown in the upper left of the gif above.
 
 ## How it works
@@ -36,3 +40,16 @@ streamlit run src/streamlit_app/app.py
 
 data used to train
 https://www.kaggle.com/datasets/braunge/aerial-view-car-detection-for-yolov5/data
+
+
+docker
+```bash
+docker build -t streamlit --file src/streamlit_app/dockerfile .
+docker run -p 8501:8501 streamlit
+```
+
+docker
+```bash
+docker build -t parking_lot_api_image --file src/api/dockerfile .
+docker run -p 8000:80 --name parking_lot_api parking_lot_api_image
+```
