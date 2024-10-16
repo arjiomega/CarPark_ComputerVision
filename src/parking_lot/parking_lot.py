@@ -1,4 +1,3 @@
-import logging
 from shared_utils.img_preprocess import get_centroid
 
 class Car:
