@@ -3,8 +3,11 @@ import requests
 
 import numpy as np
 
-from streamlit_app.utils import ApiResponseHandler
-
+try:
+    from streamlit_app.utils import ApiResponseHandler
+except:
+    from utils import ApiResponseHandler # type: ignore
+    
 inference_format = dict[str, dict[str, list | bool]]
 
 

@@ -1,7 +1,6 @@
 from PIL import Image
 from fastapi import HTTPException
 
-
 def get_img_dims(img: Image.Image):
         width, height = img.size
         return width, height
