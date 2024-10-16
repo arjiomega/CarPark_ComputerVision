@@ -54,10 +54,11 @@ def count_lot_pixel(lot_frame, _debug: bool = False) -> dict[str, int | np.ndarr
     return result
 
 
-def predict_by_pixel_count(image_frame, coords_list) -> list[bool]:
-    PIXEL_COUNT_FOR_OCCUPIED = 300
+def predict_by_pixel_count(image_frame, coords_list, pixel_count_for_occupied: int = 300) -> list[bool]:
+    pixel_count_for_occupied = 300
+    
     return [
-        count_lot_pixel(frame)["non_zero_pixel_count"] > PIXEL_COUNT_FOR_OCCUPIED
+        count_lot_pixel(frame)["non_zero_pixel_count"] > pixel_count_for_occupied
         for frame in frames_generator(image_frame, coords_list)
     ]
 

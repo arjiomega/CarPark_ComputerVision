@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from api.inference.ml import Yolo
 from parking_lot.parking_lot import Cars, ParkingLot
-from api.inference.by_pixel import predict_by_pixel_count
+from api.inference.by_pixel import count_lot_pixel
 
 yolo = Yolo(_debug = True)
 yolo.load()
@@ -20,15 +20,23 @@ class InferenceRequest(BaseModel):
 @app.post("/api/inference/by_pixel")
 def inference(input_data: InferenceRequest):
     image_frame = Image.fromarray(np.array(input_data.image_input, dtype=np.uint8))
-    labels = predict_by_pixel_count(image_frame, input_data.coords_list)
+    coords_list = input_data.coords_list
 
-    return {
-        str(idx): {
-            "coords": coords,
-            "label": label,
-        }
-        for idx, (coords, label) in enumerate(zip(input_data.coords_list, labels))
+    parking_lot = ParkingLot.from_list(coords_list)
+
+    PIXEL_COUNT_FOR_OCCUPIED = 300
+
+    for space in parking_lot.lot_iterator():
+        space.is_occupied = True if count_lot_pixel(
+            image_frame.crop(space.coords)
+        )["non_zero_pixel_count"] > PIXEL_COUNT_FOR_OCCUPIED else False
+
+    return_dict = {
+        "parking_lot_info": parking_lot.to_dict(),
+        "cars_info": None
     }
+
+    return return_dict
 
 @app.post("/api/inference/ml/{model_name}")
 def inference_ml(model_name: str, input_data: InferenceRequest):
